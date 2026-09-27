@@ -4846,7 +4846,7 @@ connectBtn.addEventListener("click",function(){
     })
     .then(function(text){
       fullHtmlText=text;
-      var m=fullHtmlText.match(/<script type="application\/json" id="site-data">([\s\S]*?)<\/script>/);
+      var m=fullHtmlText.match(/<script(?=[^>]\bid="site-data")(?=[^>]\btype="application\/json")[^>]>([\s\S]?)<\/script>/);
       if(!m)throw new Error("The selected GitHub file does not contain the CITI Academy site-data block. Make sure File is index.html and Branch is main.");
       try{siteData=JSON.parse(m[1])}catch(e){throw new Error("The site-data block in index.html is not valid JSON. The file may be incomplete or corrupted.")}
       renderAdmin();editor.hidden=false;
@@ -4971,7 +4971,7 @@ saveBtn.onclick=function(){
     saveBtn.textContent="Publishing…";
     try{
       var newJson=JSON.stringify(siteData,null,2);
-      var newHtml=fullHtmlText.replace(/(<script type="application\/json" id="site-data">)[\s\S]*?(<\/script>)/,function(_,o,c){return o+"\n"+newJson+"\n"+c});
+      var newHtml=fullHtmlText.replace(/(<script(?=[^>]\bid="site-data")(?=[^>]\btype="application\/json")[^>]>)[\s\S]?(<\/script>)/,function(_,o,c){return o+"\n"+newJson+"\n"+c});
     var api="https://api.github.com/repos/"+ghConfig.owner+"/"+ghConfig.repo;
     var headers={Authorization:"Bearer "+ghConfig.token,Accept:"application/vnd.github+json","Content-Type":"application/json"};
     var encoded=btoa(unescape(encodeURIComponent(newHtml)));
