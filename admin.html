@@ -4832,8 +4832,17 @@ connectBtn.addEventListener("click",function(){
       if(j.content && String(j.encoding||"").toLowerCase()==="base64")return decodeBase64Utf8(j.content);
       /* If the file has grown beyond the Contents API inline limit, ask the same GitHub API
          endpoint for its raw representation. No raw.githubusercontent.com dependency. */
-      return fetch(contentsUrl+"&_admin_raw="+Date.now(),{cache:"no-store",headers:{Authorization:"Bearer "+token,Accept:"application/vnd.github.raw"}})
-        .then(function(r){if(!r.ok)return apiError(r,"GitHub raw file request");return r.text()});
+      return fetch(contentsUrl,{cache:"no-store",headers:{Authorization:"Bearer "+token,Accept:"application/vnd.github.raw"}})
+        .then(function(r){if(!r.ok)return apiError(r,"GitHub raw file request");return r.text()})
+        .then(function(text){
+          /* GitHub may return JSON metadata instead of raw text if a proxy ignores the media type.
+             In that case, decode the embedded base64 content when available. */
+          try{
+            var probe=JSON.parse(text);
+            if(probe && probe.content && String(probe.encoding||"").toLowerCase()==="base64") return decodeBase64Utf8(probe.content);
+          }catch(ignore){}
+          return text;
+        });
     })
     .then(function(text){
       fullHtmlText=text;
