@@ -4824,9 +4824,27 @@ fetch(contentsUrl,{cache:"no-store",headers:{Authorization:"Bearer "+token,Accep
   })
   .then(function(text){
     fullHtmlText=text;
-    var m=fullHtmlText.match(/<script type="application\/json" id="site-data">([\s\S]*?)<\/script>/);
-    if(!m)throw new Error("Site data block not found in index.html.");
-    siteData=JSON.parse(m[1]);renderAdmin();editor.hidden=false;
+    var dataNode=null;
+    try {
+      var parsedDoc=new DOMParser().parseFromString(fullHtmlText,"text/html");
+      dataNode=parsedDoc.getElementById("site-data");
+    } catch(parseErr) {}
+    if(!dataNode){
+      /* Fallback for older/variant HTML where attribute order or quote style differs. */
+      var m=fullHtmlText.match(/<script\b[^>]*\bid=["']site-data["'][^>]*>([\s\S]*?)<\/script\s*>/i);
+      if(m){
+        var tmp=document.createElement("script");
+        tmp.textContent=m[1];
+        dataNode=tmp;
+      }
+    }
+    if(!dataNode || !dataNode.textContent.trim())throw new Error("Site data block not found in index.html. Make sure the GitHub index.html is the latest CITI Academy website file.");
+    try {
+      siteData=JSON.parse(dataNode.textContent);
+    } catch(jsonErr) {
+      throw new Error("The GitHub index.html was loaded, but its site data could not be read. Please replace GitHub index.html with the latest CITI Academy file.");
+    }
+    renderAdmin();editor.hidden=false;
     msg(connectMsg,"success","Website loaded. Edit the content below and publish when ready.")
   })
   .catch(function(e){msg(connectMsg,"error",e.message)})
