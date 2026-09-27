@@ -4811,12 +4811,17 @@ fetch(contentsUrl,{cache:"no-store",headers:{Authorization:"Bearer "+token,Accep
   .then(function(r){if(!r.ok)throw new Error("GitHub API returned "+r.status+". Check the repository, branch and token.");return r.json()})
   .then(function(j){
     fileSha=j.sha;
-    var rawUrl=j.download_url,rawOpts;
-    if(rawUrl){rawOpts={cache:"no-store",headers:{Authorization:"Bearer "+token}}}
-    else{rawUrl=contentsUrl+(contentsUrl.indexOf("?")>-1?"&":"?")+"_ts="+Date.now();rawOpts={cache:"no-store",headers:{Authorization:"Bearer "+token,Accept:"application/vnd.github.raw+json"}}}
-    return fetch(rawUrl,rawOpts);
+    /* Read the file body from the Contents API response itself. This avoids a
+       second cross-origin request to download_url/raw.githubusercontent.com,
+       which can fail on mobile browsers when an Authorization header triggers
+       a CORS preflight. The current index.html is below GitHub's 1 MB Contents
+       API file limit, so its base64 content is returned directly. */
+    if(!j.content)throw new Error("GitHub returned no file content. If index.html is larger than 1 MB, use a GitHub-backed loader instead.");
+    var b64=j.content.replace(/\s/g,"");
+    var bin=atob(b64),bytes=new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+    return new TextDecoder("utf-8").decode(bytes);
   })
-  .then(function(r){if(!r.ok)throw new Error("Could not read the file content ("+r.status+").");return r.text()})
   .then(function(text){
     fullHtmlText=text;
     var m=fullHtmlText.match(/<script type="application\/json" id="site-data">([\s\S]*?)<\/script>/);
