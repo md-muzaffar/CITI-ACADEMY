@@ -4805,27 +4805,51 @@ function msg(el,type,t){el.className="form-msg "+type;el.textContent=t}
 function readLines(id){return $(id).value.split("\n").map(function(x){return x.trim()}).filter(Boolean)}
 $("admHeroImageFile").onchange=function(){var f=this.files&&this.files[0];if(f)resizeImage(f,1200,function(url){$("admHeroImage").value=url;siteData.settings.heroImage=url})};
 $("admLogoFile").onchange=function(){var f=this.files&&this.files[0];if(f)resizeImage(f,700,function(url){$("admLogo").value=url;siteData.settings.logo=url})};
-connectBtn.addEventListener("click",function(){var owner=$("ghOwner").value.trim(),repo=$("ghRepo").value.trim(),branch=$("ghBranch").value.trim()||"main",file=$("ghFile").value.trim()||"index.html",token=$("ghToken").value.trim();if(!owner||!repo||!token){msg(connectMsg,"error","Please enter repository owner, repository name and token.");return}ghConfig={owner:owner,repo:repo,branch:branch,file:file,token:token};sessionStorage.setItem("ghOwner",owner);sessionStorage.setItem("ghRepo",repo);sessionStorage.setItem("ghBranch",branch);sessionStorage.setItem("ghFile",file);connectBtn.disabled=true;connectBtn.textContent="Loading…";var contentsUrl="https://api.github.com/repos/"+owner+"/"+repo+"/contents/"+encodeURIComponent(file)+"?ref="+branch;
-/* Two-step load: 1) get the file's sha + download_url via the normal Contents API. 2) fetch the RAW file body from a SEPARATE url (the download_url GitHub gives us), not the same contentsUrl again. Fetching the same URL twice with only the Accept header changed is unreliable on mobile browsers/proxies: many caches key purely on the URL and ignore Accept, so the second request can silently get back the first (JSON) response instead of raw text. cache:"no-store" plus a distinct URL avoids that entirely. */
-fetch(contentsUrl,{cache:"no-store",headers:{Authorization:"Bearer "+token,Accept:"application/vnd.github+json"}})
-  .then(function(r){if(!r.ok)throw new Error("GitHub API returned "+r.status+". Check the repository, branch and token.");return r.json()})
-  .then(function(j){
-    fileSha=j.sha;
-    var rawUrl=j.download_url,rawOpts;
-    if(rawUrl){rawOpts={cache:"no-store",headers:{Authorization:"Bearer "+token}}}
-    else{rawUrl=contentsUrl+(contentsUrl.indexOf("?")>-1?"&":"?")+"_ts="+Date.now();rawOpts={cache:"no-store",headers:{Authorization:"Bearer "+token,Accept:"application/vnd.github.raw+json"}}}
-    return fetch(rawUrl,rawOpts);
-  })
-  .then(function(r){if(!r.ok)throw new Error("Could not read the file content ("+r.status+").");return r.text()})
-  .then(function(text){
-    fullHtmlText=text;
-    var m=fullHtmlText.match(/<script type="application\/json" id="site-data">([\s\S]*?)<\/script>/);
-    if(!m)throw new Error("Site data block not found in index.html.");
-    siteData=JSON.parse(m[1]);renderAdmin();editor.hidden=false;
-    msg(connectMsg,"success","Website loaded. Edit the content below and publish when ready.")
-  })
-  .catch(function(e){msg(connectMsg,"error",e.message)})
-  .finally(function(){connectBtn.disabled=false;connectBtn.textContent="Load Website"})});
+connectBtn.addEventListener("click",function(){
+  var owner=$("ghOwner").value.trim(),repo=$("ghRepo").value.trim(),branch=$("ghBranch").value.trim()||"main",file=$("ghFile").value.trim()||"index.html",token=$("ghToken").value.trim();
+  if(!owner||!repo||!token){msg(connectMsg,"error","Please enter repository owner, repository name and token.");return}
+  ghConfig={owner:owner,repo:repo,branch:branch,file:file,token:token};
+  sessionStorage.setItem("ghOwner",owner);sessionStorage.setItem("ghRepo",repo);sessionStorage.setItem("ghBranch",branch);sessionStorage.setItem("ghFile",file);
+  connectBtn.disabled=true;connectBtn.textContent="Loading…";
+  var contentsUrl="https://api.github.com/repos/"+owner+"/"+repo+"/contents/"+encodeURIComponent(file)+"?ref="+encodeURIComponent(branch);
+  var headers={Authorization:"Bearer "+token,Accept:"application/vnd.github+json"};
+  function decodeBase64Utf8(b64){
+    b64=String(b64||"").replace(/\\s/g,"");
+    var bin=atob(b64),bytes=new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+    return new TextDecoder("utf-8").decode(bytes);
+  }
+  function apiError(r,label){
+    return r.text().then(function(t){var j;try{j=JSON.parse(t)}catch(e){}throw new Error((j&&j.message)||((label||"GitHub request")+" failed (HTTP "+r.status+"). Check owner, repository, branch and token."))})
+  }
+  fetch(contentsUrl,{cache:"no-store",headers:headers})
+    .then(function(r){if(!r.ok)return apiError(r,"GitHub file request");return r.json()})
+    .then(function(j){
+      fileSha=j.sha||null;
+      /* GitHub's Contents API includes the complete base64 file body for files under 1 MB.
+         Use that directly first. This avoids the raw.githubusercontent.com CORS/cache problem
+         that was causing "Failed to fetch" / "Site data block not found" on some browsers. */
+      if(j.content && String(j.encoding||"").toLowerCase()==="base64")return decodeBase64Utf8(j.content);
+      /* If the file has grown beyond the Contents API inline limit, ask the same GitHub API
+         endpoint for its raw representation. No raw.githubusercontent.com dependency. */
+      return fetch(contentsUrl+"&_admin_raw="+Date.now(),{cache:"no-store",headers:{Authorization:"Bearer "+token,Accept:"application/vnd.github.raw"}})
+        .then(function(r){if(!r.ok)return apiError(r,"GitHub raw file request");return r.text()});
+    })
+    .then(function(text){
+      fullHtmlText=text;
+      var m=fullHtmlText.match(/<script type="application\/json" id="site-data">([\s\S]*?)<\/script>/);
+      if(!m)throw new Error("The selected GitHub file does not contain the CITI Academy site-data block. Make sure File is index.html and Branch is main.");
+      try{siteData=JSON.parse(m[1])}catch(e){throw new Error("The site-data block in index.html is not valid JSON. The file may be incomplete or corrupted.")}
+      renderAdmin();editor.hidden=false;
+      msg(connectMsg,"success","Website loaded. Edit the content below and publish when ready.")
+    })
+    .catch(function(e){
+      var message=e&&e.message?e.message:"Unable to connect to GitHub.";
+      if(message==="Failed to fetch")message="Could not reach GitHub. Check your internet connection, GitHub token, repository owner/name, and branch, then try again.";
+      msg(connectMsg,"error",message)
+    })
+    .finally(function(){connectBtn.disabled=false;connectBtn.textContent="Load Website"})
+});
 
 function renderMilestoneRows(){
   var box=$("milestoneAdminList"); if(!box)return;
