@@ -4826,7 +4826,8 @@ var fmt=function(n){return typeof n==="number" ? "₹"+n.toLocaleString("en-IN")
 $("year").textContent=new Date().getFullYear();
 var nav=$("mainNav"),toggle=$("navToggle");toggle.addEventListener("click",function(){nav.classList.toggle("open")});
 function mapsLink(){var i=DATA.institute;return i.mapLink||("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent((i.mapLat&&i.mapLng)?i.mapLat+","+i.mapLng:i.address))}
-var primaryPhone=DATA.institute.phones[0];var wa="https://wa.me/91"+primaryPhone+"?text="+encodeURIComponent("Hello CITI Academy, I would like to know more about your courses.");
+function waNumber(p){var d=String(p||"").replace(/\D/g,"");if(d.length>10&&d.indexOf("91")===0)return d;if(d.length===11&&d.charAt(0)==="0")d=d.slice(1);return d.length===10?"91"+d:d}
+var primaryPhone=DATA.institute.phones[0];var wa="https://wa.me/"+waNumber(primaryPhone)+"?text="+encodeURIComponent("Hello CITI Academy, I would like to know more about your courses.");
 $("heroWhatsapp").href=wa;
 
 function showView(name){
@@ -4916,7 +4917,7 @@ function renderHome(){
   var lat=Number(i.mapLat),lng=Number(i.mapLng);
   var mapTarget=(Number.isFinite(lat)&&Number.isFinite(lng))?(lat+','+lng):(i.mapQuery||i.address||'');
   $('mapFrame').src='https://www.google.com/maps?q='+encodeURIComponent(mapTarget)+'&z=18&output=embed';
-  var wa='https://wa.me/'+(phones[0]||'').replace(/\D/g,'')+'?text='+encodeURIComponent('Hello CITI Academy, I would like to know about your courses.');
+  var wa='https://wa.me/'+waNumber(phones[0])+'?text='+encodeURIComponent('Hello CITI Academy, I would like to know about your courses.');
   $('heroWhatsapp').href=wa;
   var ss=DATA.settings||{};
   document.querySelectorAll('#contactCard .contact-line strong')[0]?.replaceChildren(document.createTextNode(ss.contactVisitLabel||'Visit CITI Academy'));
