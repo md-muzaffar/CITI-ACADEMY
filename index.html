@@ -3516,6 +3516,7 @@ html{scrollbar-color:#55cfff rgba(255,255,255,.08);scrollbar-width:thin}body::-w
 .category-hero.category-hero-compact:after{display:none}
 .category-hero-compact .kicker{display:inline-block;max-width:100%}
 .category-back{margin-top:38px;display:flex;justify-content:flex-start}
+.category-back.course-back{margin:34px 0 64px}
 </style></head><body>
 <header class="site-header">
 <div class="wrap">
@@ -3584,7 +3585,7 @@ html{scrollbar-color:#55cfff rgba(255,255,255,.08);scrollbar-width:thin}body::-w
 <div class="section-head">
 <span class="section-tag" id="diplomaTag">Additional Diploma Programs</span>
 <h2 id="diplomaTitle">Specialised career-oriented diploma programs.</h2>
-<p id="diplomaDescription">Explore Fire &amp; Safety, Hotel Management and Aviation programs with dedicated course information and registration.</p>
+<p id="diplomaDescription">Explore Fire &amp; Safety, Hotel Management, Aviation and Digital Marketing programs with dedicated course information and registration.</p>
 </div>
 <div class="course-grid" id="additionalGrid"></div>
 </div>
@@ -3634,7 +3635,7 @@ html{scrollbar-color:#55cfff rgba(255,255,255,.08);scrollbar-width:thin}body::-w
 <section class="category-hero category-hero-compact"><div class="wrap">
 <span class="kicker" id="categoryKicker"></span>
 </div></section>
-<section class="section"><div class="wrap"><div class="section-head"><span class="section-tag">Explore the programs</span><h2>Choose a course to view the complete curriculum.</h2><p>Each course opens a dedicated page with overview, learning topics, practical training, eligibility, duration, certification and registration.</p></div><div class="course-grid" id="categoryCourseGrid"></div><div class="category-back"><a class="btn btn-primary" data-hash="#programs" data-nav="home">Back to Programs</a></div></div></section>
+<section class="section"><div class="wrap"><div class="section-head"><span class="section-tag">Explore the programs</span><h2>Choose a course to view the complete curriculum.</h2><p>Each course opens a dedicated page with overview, learning topics, practical training, eligibility, duration, certification and registration.</p></div><div class="course-grid" id="categoryCourseGrid"></div><div class="category-back"><a class="btn btn-primary" data-nav="home">Back to Home</a></div></div></section>
 </div>
 <div hidden="" id="view-course">
 <section class="course-hero"><div class="wrap">
@@ -3663,6 +3664,7 @@ html{scrollbar-color:#55cfff rgba(255,255,255,.08);scrollbar-width:thin}body::-w
 </div>
 </aside>
 </div>
+<div class="category-back course-back"><a class="btn btn-primary" id="courseBackBtn" data-hash="#programs" data-nav="home">Back to Programs</a></div>
 </div>
 </div>
 
@@ -4526,7 +4528,7 @@ html{scrollbar-color:#55cfff rgba(255,255,255,.08);scrollbar-width:thin}body::-w
       "id": "digital-marketing",
       "name": "Digital Marketing",
       "tagline": "Modern digital marketing & online growth skills",
-      "group": "Data, Cloud & Digital Careers",
+      "group": "Additional Diploma Programs",
       "category": "Digital Marketing",
       "open": true,
       "duration": "3 Months",
@@ -4716,7 +4718,7 @@ html{scrollbar-color:#55cfff rgba(255,255,255,.08);scrollbar-width:thin}body::-w
       "id": "data-cloud-digital",
       "name": "Data, Cloud & Digital Careers",
       "shortName": "Data, Cloud & Digital",
-      "description": "Explore modern technology pathways across data, analytics, AI, cloud, DevOps and digital marketing.",
+      "description": "Explore modern technology pathways across data, analytics, AI, cloud and DevOps.",
       "group": "Data, Cloud & Digital Careers",
       "icon": "☁️",
       "image": "https://raw.githubusercontent.com/md-muzaffar/CITI-ACADEMY/main/images/img-1791463231832-8cptvz.jpg"
@@ -4751,7 +4753,7 @@ html{scrollbar-color:#55cfff rgba(255,255,255,.08);scrollbar-width:thin}body::-w
     "programsDescription": "Choose a professional category below. Each category opens a dedicated page containing its complete set of courses, professional visuals and detailed course information.",
     "diplomaTag": "Additional Diploma Programs",
     "diplomaTitle": "Specialised career-oriented diploma programs.",
-    "diplomaDescription": "Explore Fire & Safety, Hotel Management and Aviation programs with dedicated course information and registration.",
+    "diplomaDescription": "Explore Fire & Safety, Hotel Management, Aviation and Digital Marketing programs with dedicated course information and registration.",
     "peopleTag": "People & Campus Stories",
     "peopleTitle": "Meet our trainers and see the moments that shape the CITI learning experience.",
     "trainerHeading": "Meet Our Trainers",
@@ -4925,7 +4927,7 @@ function renderHome(){
 }
 function fillList(id,arr){$ (id).innerHTML=(arr||[]).map(function(x){return "<li>"+esc(x)+"</li>"}).join("")}
 function renderCategory(id){var cat=(DATA.programCategories||[]).find(function(x){return x.id===id});if(!cat){showView("home");return}document.title=cat.name+' — CITI Academy';$('categoryKicker').textContent=cat.name;var list=DATA.courses.filter(function(c){return c.group===cat.group});$('categoryCourseGrid').innerHTML=list.map(card).join('');}
-function renderCourse(id){var c=DATA.courses.find(function(x){return x.id===id});if(!c){showView("home");return}document.title=c.name+" — CITI Academy";$("crumbName").textContent=c.name;$("courseCategory").textContent=c.category;$("courseName").textContent=c.name;$("courseTagline").textContent=c.tagline;$("courseImage").src=c.image;$("courseImage").alt=c.name;$("courseOverview").textContent=c.overview;$("mockInterviewText").textContent=c.mockInterview;$("resumePrepText").textContent=c.resumePrep;$("certificationText").textContent=c.certification;$("sideFee").textContent=fmt(c.fee);$("sideOriginalFee").textContent=c.originalFee?fmt(c.originalFee):"";$("sideDuration").textContent=c.duration;$("sideMode").textContent=c.mode;$("sideEligibility").textContent=c.eligibility;$("sideCategory").textContent=c.category;fillList("conceptsList",c.concepts);fillList("practicalList",c.practical);fillList("highlightsList",c.highlights);var open=c.open!==false;$("courseStatus").textContent=open?"Admissions open":"Admissions closed";$("courseStatus").className="status "+(open?"open":"closed");
+function renderCourse(id){var c=DATA.courses.find(function(x){return x.id===id});if(!c){showView("home");return}document.title=c.name+" — CITI Academy";$("crumbName").textContent=c.name;var bb=$("courseBackBtn");if(bb)bb.setAttribute("data-hash",c.group==="Additional Diploma Programs"?"#additional":"#programs");$("courseCategory").textContent=c.category;$("courseName").textContent=c.name;$("courseTagline").textContent=c.tagline;$("courseImage").src=c.image;$("courseImage").alt=c.name;$("courseOverview").textContent=c.overview;$("mockInterviewText").textContent=c.mockInterview;$("resumePrepText").textContent=c.resumePrep;$("certificationText").textContent=c.certification;$("sideFee").textContent=fmt(c.fee);$("sideOriginalFee").textContent=c.originalFee?fmt(c.originalFee):"";$("sideDuration").textContent=c.duration;$("sideMode").textContent=c.mode;$("sideEligibility").textContent=c.eligibility;$("sideCategory").textContent=c.category;fillList("conceptsList",c.concepts);fillList("practicalList",c.practical);fillList("highlightsList",c.highlights);var open=c.open!==false;$("courseStatus").textContent=open?"Admissions open":"Admissions closed";$("courseStatus").className="status "+(open?"open":"closed");
 var area=$("registrationArea");if(!open){area.innerHTML='<p style="font-size:.85rem">Admissions for this program are currently closed. Contact admissions for the next batch.</p><a class="btn btn-navy btn-block" href="'+wa+'" target="_blank">Contact Admissions</a>';return}
 area.innerHTML='<h3 style="color:var(--navy);font-size:1rem">Register for this course</h3><form class="reg-form" id="regForm"><div class="field"><label>Full name</label><input name="name" required></div><div class="row2"><div class="field"><label>Phone</label><input name="phone" type="tel" pattern="[0-9]{10}" required placeholder="10-digit number"></div><div class="field"><label>Email (optional)</label><input name="email" type="email"></div></div><div class="field"><label>Highest qualification</label><input name="qualification" required></div><div class="field"><label>Preferred mode</label><select name="preferredMode"><option>Offline</option><option>Online</option><option>No preference</option></select></div><div class="field"><label>Message (optional)</label><textarea name="message"></textarea></div><button class="btn btn-primary btn-block" type="submit">Submit Registration</button><div class="form-msg" id="regMsg"></div></form>';
 $("regForm").addEventListener("submit",function(e){e.preventDefault();var f=e.target,msg=$("regMsg"),btn=f.querySelector("button");if(!DATA.registrationEndpoint||DATA.registrationEndpoint.indexOf("PASTE_YOUR")!==-1){msg.className="form-msg error";msg.textContent="Registration storage is not connected yet. Please use the contact buttons or connect Google Apps Script in Admin.";return}var payload={courseId:c.id,courseName:c.name,name:f.name.value.trim(),phone:f.phone.value.trim(),email:f.email.value.trim(),qualification:f.qualification.value.trim(),preferredMode:f.preferredMode.value,message:f.message.value.trim(),submittedAt:new Date().toISOString(),source:location.href};btn.disabled=true;btn.textContent="Submitting…";fetch(DATA.registrationEndpoint,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)}).then(function(){msg.className="form-msg success";msg.textContent="Thank you. Your registration has been received. We will contact you shortly.";f.reset()}).catch(function(){msg.className="form-msg error";msg.textContent="Unable to submit right now. Please contact admissions directly."}).finally(function(){btn.disabled=false;btn.textContent="Submit Registration"})})}
